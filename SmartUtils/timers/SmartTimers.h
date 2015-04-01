@@ -11,6 +11,8 @@
 
 #include <cstdint>
 #include <memory>
+#include <thread>
+#include <set>
 
 namespace ns_utils {
 
@@ -36,6 +38,12 @@ public:
 		ECT_MONOTONIC = ECT_BASE + 2
 	};
 
+	enum EErrorType
+	{
+		EET_SUC = 0,
+		EET_ERR = EET_SUC - 1
+	};
+
 public:
 	CSmartTimers();
 	virtual ~CSmartTimers();
@@ -47,6 +55,10 @@ public:
 	int32_t add_timer();
 	int32_t remove_timer();
 
+private:
+	typedef std::shared_ptr<std::thread> ThreadPtr_t;
+	ThreadPtr_t m_pThread;
+	std::set<TimerHandlerPtr_t> m_setTimers;
 
 };
 
