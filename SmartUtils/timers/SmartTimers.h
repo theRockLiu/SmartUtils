@@ -5,8 +5,8 @@
  *      Author: rock
  */
 
-#ifndef CSMARTTIMERS_H_
-#define CSMARTTIMERS_H_
+#ifndef SMARTTIMERS_H_
+#define SMARTTIMERS_H_
 
 
 #include <cstdint>
@@ -20,7 +20,7 @@ protected:
 	virtual ~CTimerHandler(){}
 
 public:
-	virtual void_t handle_timer_evt(uint64_t ui64Times) = 0;
+	virtual void handle_timer_evt(uint64_t ui64Times) = 0;
 
 };
 typedef std::shared_ptr<ns_utils::CTimerHandler> TimerHandlerPtr_t;
@@ -33,7 +33,7 @@ public:
 	{
 		ECT_BASE = 0,
 		ECT_REALTIME = ECT_BASE + 1,
-		ECT_MONOTONIC = ECT_BASE + 2;
+		ECT_MONOTONIC = ECT_BASE + 2
 	};
 
 public:
@@ -52,4 +52,4 @@ public:
 
 } /* namespace ns_utils */
 
-#endif /* CSMARTTIMERS_H_ */
+#endif /* SMARTTIMERS_H_ */
