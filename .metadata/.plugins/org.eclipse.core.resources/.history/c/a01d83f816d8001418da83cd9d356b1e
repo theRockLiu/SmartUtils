@@ -1,0 +1,21 @@
+/*
+ * CSmartTimers.h
+ *
+ *  Created on: Apr 1, 2015
+ *      Author: rock
+ */
+
+#ifndef CSMARTTIMERS_H_
+#define CSMARTTIMERS_H_
+
+namespace ns_utils {
+
+class CSmartTimers {
+public:
+	CSmartTimers();
+	virtual ~CSmartTimers();
+};
+
+} /* namespace ns_utils */
+
+#endif /* CSMARTTIMERS_H_ */

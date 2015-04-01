@@ -1,0 +1,12 @@
+!SESSION 2015-04-01 10:07:29.395 -----------------------------------------------
+eclipse.buildId=4.4.2.Z20150304-1109
+java.version=1.8.0_40
+java.vendor=Oracle Corporation
+BootLoader constants: OS=linux, ARCH=x86_64, WS=gtk, NL=en_US
+Command-line arguments:  -data /home/rock/git/SmartUtils -os linux -ws gtk -arch x86_64
+
+!ENTRY org.eclipse.cdt.core 1 0 2015-04-01 10:10:08.286
+!MESSAGE Indexed 'SmartUtils' (0 sources, 0 headers) in 0.035 sec: 0 declarations; 0 references; 0 unresolved inclusions; 0 syntax errors; 0 unresolved names (0%)
+
+!ENTRY org.eclipse.ui 2 2 2015-04-01 10:28:18.520
+!MESSAGE Invalid preference category path: org.eclipse.ptp.remote.ui.RemoteDevelopmentPreferencePage (bundle: org.eclipse.ptp.rdt.ui, page: org.eclipse.ptp.rdt.ui.RemoteDevPreferencePage)

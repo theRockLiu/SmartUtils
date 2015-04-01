@@ -1,0 +1,47 @@
+/*
+ * CSmartTimers.h
+ *
+ *  Created on: Apr 1, 2015
+ *      Author: rock
+ */
+
+#ifndef CSMARTTIMERS_H_
+#define CSMARTTIMERS_H_
+
+
+#include <cstdint>
+#include <memory>
+#include "../common/SmartTypes.h"
+
+namespace ns_utils {
+
+class CTimerHandler{
+protected:
+	CTimerHandler(){}
+	virtual ~CTimerHandler(){}
+
+public:
+	virtual void_t handle_timer_evt(uint32_t )
+
+};
+typedef std::shared_ptr<ns_utils::CTimerHandler> TimerHandlerPtr_t;
+
+
+class CSmartTimers {
+public:
+	CSmartTimers();
+	virtual ~CSmartTimers();
+
+public:
+	int32_t start();
+	int32_t stop();
+
+	int32_t add_timer();
+	int32_t remove_timer();
+
+
+};
+
+} /* namespace ns_utils */
+
+#endif /* CSMARTTIMERS_H_ */
