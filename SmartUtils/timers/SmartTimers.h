@@ -44,6 +44,19 @@ public:
 		EET_ERR = EET_SUC - 1
 	};
 
+	class CTimerMgr
+	{
+	public:
+
+		inline bool get_flag() const {return m_bStopFlag;}
+		inline void handle_timers() const;
+
+	private:
+		volatile bool m_bStopFlag;
+		typedef std::set<TimerHandlerPtr_t> TimerHanderSet_t;
+		TimerHanderSet_t m_setTimers;
+	};
+
 public:
 	CSmartTimers();
 	virtual ~CSmartTimers();
@@ -55,10 +68,16 @@ public:
 	int32_t add_timer();
 	int32_t remove_timer();
 
+	void handle_timers();
+
+	CTimerMgr& get_timermgr(){return m_objTM;}
+
 private:
+
+	CTimerMgr m_objTM;
 	typedef std::shared_ptr<std::thread> ThreadPtr_t;
 	ThreadPtr_t m_pThread;
-	std::set<TimerHandlerPtr_t> m_setTimers;
+
 
 };
 
