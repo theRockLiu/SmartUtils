@@ -1,0 +1,15 @@
+14:57:12 **** Incremental Build of configuration Debug for project SmartUtilsTest ****
+make all 
+Building file: ../src/SmartUtilsTest.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++1y -I"/home/rock/git/SmartUtils/SmartUtils" -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"src/SmartUtilsTest.d" -MT"src/SmartUtilsTest.d" -o "src/SmartUtilsTest.o" "../src/SmartUtilsTest.cpp"
+Finished building: ../src/SmartUtilsTest.cpp
+ 
+Building target: SmartUtilsTest
+Invoking: GCC C++ Linker
+g++  -o "SmartUtilsTest"  ./src/SmartUtilsTest.o   
+Finished building target: SmartUtilsTest
+ 
+
+14:57:13 Build Finished (took 1s.287ms)
+

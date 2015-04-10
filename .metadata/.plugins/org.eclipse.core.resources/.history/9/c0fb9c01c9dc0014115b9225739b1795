@@ -1,0 +1,77 @@
+/*
+ * CSmartTimers.h
+ *
+ *  Created on: Apr 1, 2015
+ *      Author: rock
+ */
+
+#ifndef SMARTTIMERS_H_
+#define SMARTTIMERS_H_
+
+
+#include <cstdint>
+#include <memory>
+#include <thread>
+#include <set>
+
+namespace ns_utils {
+
+class CTimerHandler{
+protected:
+	CTimerHandler(){}
+	virtual ~CTimerHandler(){}
+
+public:
+	virtual void handle_timer_evt(uint64_t ui64Times) = 0;
+
+};
+typedef std::shared_ptr<ns_utils::CTimerHandler> TimerHandlerPtr_t;
+
+
+class CSmartTimers {
+
+public:
+	enum EClockType
+	{
+		ECT_BASE = 0,
+		ECT_REALTIME = ECT_BASE + 1,
+		ECT_MONOTONIC = ECT_BASE + 2
+	};
+
+	enum EErrorType
+	{
+		EET_SUC = 0,
+		EET_ERR = EET_SUC - 1
+	};
+
+	class CTimerMgr
+	{
+	public:
+
+	};
+
+public:
+	CSmartTimers();
+	virtual ~CSmartTimers();
+
+public:
+	int32_t start();
+	int32_t stop();
+
+	int32_t add_timer();
+	int32_t remove_timer();
+
+	CTimerMgr& get_timermgr(){return m_objTM;}
+
+private:
+
+	CTimerMgr m_objTM;
+	typedef std::shared_ptr<std::thread> ThreadPtr_t;
+	ThreadPtr_t m_pThread;
+	std::set<TimerHandlerPtr_t> m_setTimers;
+
+};
+
+} /* namespace ns_utils */
+
+#endif /* SMARTTIMERS_H_ */

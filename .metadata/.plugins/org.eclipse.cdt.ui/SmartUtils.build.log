@@ -1,0 +1,16 @@
+14:42:30 **** Build of configuration Debug for project SmartUtils ****
+make all 
+Building file: ../timers/SmartTimers.cpp
+Invoking: GCC C++ Compiler
+g++ -std=c++1y -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"timers/SmartTimers.d" -MT"timers/SmartTimers.d" -o "timers/SmartTimers.o" "../timers/SmartTimers.cpp"
+Finished building: ../timers/SmartTimers.cpp
+ 
+Building target: libSmartUtils.a
+Invoking: GCC Archiver
+ar -r  "libSmartUtils.a"  ./timers/SmartTimers.o   
+ar: creating libSmartUtils.a
+Finished building target: libSmartUtils.a
+ 
+
+14:42:31 Build Finished (took 972ms)
+
