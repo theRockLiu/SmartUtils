@@ -18,7 +18,7 @@ namespace ns_utils
 
 enum EClockType
 {
-	ECT_REALTIME = 0, ECT_MONOTONIC = 1
+	ECT_NONE = 0, ECT_REALTIME = 1, ECT_MONOTONIC = 2
 };
 
 enum EErrCode
@@ -26,16 +26,16 @@ enum EErrCode
 	EEC_SUC = 0, EEC_ERR = -1
 };
 
+class CSmartTimers;
+
 class CBaseTimer
 {
+	friend CSmartTimers;
+
 protected:
-	CBaseTimer(int32_t timer_type, int64_t init_expire_seconds,
-			int64_t init_expire_nanos, int64_t interval_seconds,
-			int64_t interval_nanos) :
-			m_fd(-1), m_timer_type(timer_type), m_init_expire_seconds(
-					init_expire_seconds), m_init_expire_nanos(
-					init_expire_nanos), m_interval_seconds(interval_seconds), m_interval_nanos(
-					interval_nanos)
+	CBaseTimer() :
+			m_fd(-1), m_timer_type(ECT_NONE), m_init_expire_seconds(-1), m_init_expire_nanos(
+					-1), m_interval_seconds(-1), m_interval_nanos(-1)
 	{
 	}
 	virtual ~CBaseTimer()
@@ -44,8 +44,24 @@ protected:
 
 	int32_t create();
 
-public:
 	virtual void handle_interval_evt(uint64_t ui64Times) = 0;
+
+public:
+	void set_timer_type(int32_t timer_type)
+	{
+		m_timer_type = timer_type;
+	}
+	void set_init_expire_time(int64_t init_expire_seconds,
+			int64_t init_expire_nanos)
+	{
+		m_init_expire_seconds = init_expire_seconds;
+		m_init_expire_nanos = init_expire_nanos;
+	}
+	void set_interval_time(int64_t interval_seconds, int64_t interval_nanos)
+	{
+		m_interval_seconds = interval_seconds;
+		m_interval_nanos = interval_nanos;
+	}
 
 private:
 	int32_t m_fd;
@@ -56,13 +72,13 @@ private:
 	int64_t m_interval_nanos;
 
 };
-typedef std::shared_ptr<ns_utils::CBaseTimer> TimerHandlerPtr_t;
+typedef std::shared_ptr<ns_utils::CBaseTimer> timer_ptr_t;
 
 class CSmartTimers
 {
 
 public:
-	CSmartTimers();
+	explicit CSmartTimers();
 	virtual ~CSmartTimers();
 
 public:
@@ -70,15 +86,15 @@ public:
 	int32_t start();
 	int32_t stop();
 
-	int32_t add_timer(TimerHandlerPtr_t &pTimerHandler);
-	int32_t remove_timer(TimerHandlerPtr_t &pTimerHandler);
+	int32_t add_timer(timer_ptr_t &pTimerHandler);
+	int32_t remove_timer(timer_ptr_t &pTimerHandler);
 
 	void handle_timers();
 
 private:
 
 	volatile bool m_bStopFlag;
-	typedef std::set<TimerHandlerPtr_t> TimerHanderSet_t;
+	typedef std::set<timer_ptr_t> TimerHanderSet_t;
 	TimerHanderSet_t m_setTimers;
 	typedef std::shared_ptr<std::thread> ThreadPtr_t;
 	ThreadPtr_t m_pThread;

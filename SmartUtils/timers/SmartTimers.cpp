@@ -14,7 +14,18 @@ namespace ns_utils
 
 int32_t CBaseTimer::create()
 {
-	m_fd = timerfd_create(CLOCK_REALTIME, 0);
+
+	if (ECT_REALTIME != m_timer_type && ECT_MONOTONIC != m_timer_type)
+	{
+		return EEC_ERR;
+	}
+
+	m_fd = timerfd_create(ECT_REALTIME == m_timer_type ? CLOCK_REALTIME : CLOCK_MONOTONIC, 0);
+	if (-1 == m_fd)
+	{
+		//print errno.
+		return EEC_ERR;
+	}
 
 	return EEC_SUC;
 }
@@ -51,10 +62,12 @@ int32_t CSmartTimers::stop()
 	return EEC_SUC;
 }
 
-int32_t CSmartTimers::remove_timer(TimerHandlerPtr_t &pTimerHandler)
+int32_t CSmartTimers::remove_timer(timer_ptr_t &pTimerHandler)
 {
 	return EEC_SUC;
 }
+
+
 
 void CSmartTimers::handle_timers()
 {
@@ -122,10 +135,11 @@ void CSmartTimers::handle_timers()
 
 }
 
-int32_t CSmartTimers::add_timer(TimerHandlerPtr_t& pTimerHandler)
+int32_t CSmartTimers::add_timer(timer_ptr_t& pTimerHandler)
 {
 	return EEC_SUC;
 }
 
 } /* namespace ns_utils */
+
 
