@@ -16,40 +16,50 @@
 namespace ns_utils
 {
 
+enum EClockType
+{
+	ECT_REALTIME = 0, ECT_MONOTONIC = 1
+};
+
 enum EErrCode
 {
-	EEC_SUC = 0
+	EEC_SUC = 0, EEC_ERR = -1
 };
 
-class CTimerHandler
+class CBaseTimer
 {
 protected:
-	CTimerHandler()
+	CBaseTimer(int32_t timer_type, int64_t init_expire_seconds,
+			int64_t init_expire_nanos, int64_t interval_seconds,
+			int64_t interval_nanos) :
+			m_fd(-1), m_timer_type(timer_type), m_init_expire_seconds(
+					init_expire_seconds), m_init_expire_nanos(
+					init_expire_nanos), m_interval_seconds(interval_seconds), m_interval_nanos(
+					interval_nanos)
 	{
 	}
-	virtual ~CTimerHandler()
+	virtual ~CBaseTimer()
 	{
 	}
+
+	int32_t create();
 
 public:
-	virtual void handle_timer_evt(uint64_t ui64Times) = 0;
+	virtual void handle_interval_evt(uint64_t ui64Times) = 0;
+
+private:
+	int32_t m_fd;
+	int32_t m_timer_type;
+	int64_t m_init_expire_seconds;
+	int64_t m_init_expire_nanos;
+	int64_t m_interval_seconds;
+	int64_t m_interval_nanos;
 
 };
-typedef std::shared_ptr<ns_utils::CTimerHandler> TimerHandlerPtr_t;
+typedef std::shared_ptr<ns_utils::CBaseTimer> TimerHandlerPtr_t;
 
 class CSmartTimers
 {
-
-public:
-	enum EClockType
-	{
-		ECT_BASE = 0, ECT_REALTIME = ECT_BASE + 1, ECT_MONOTONIC = ECT_BASE + 2
-	};
-
-	enum EErrorType
-	{
-		EET_SUC = 0, EET_ERR = EET_SUC - 1
-	};
 
 public:
 	CSmartTimers();

@@ -7,21 +7,17 @@
 
 #include "SmartTimers.h"
 #include <utility>
+#include <sys/timerfd.h>
 
 namespace ns_utils
 {
 
-//void thr_fun(const CSmartTimers::CTimerMgr &tm) {
-//
-//	for (;;) {
-//		if (tm.get_flag()) {
-//			break;
-//		}
-//
-//		tm.handle_timers();
-//	}
-//
-//}
+int32_t CBaseTimer::create()
+{
+	m_fd = timerfd_create(CLOCK_REALTIME, 0);
+
+	return EEC_SUC;
+}
 
 CSmartTimers::CSmartTimers()
 {
@@ -39,25 +35,25 @@ int32_t CSmartTimers::start()
 
 	if (m_pThread != nullptr)
 	{
-		return EET_ERR;
+		return EEC_ERR;
 	}
 
 	m_pThread = std::make_shared < std::thread > ([this]
 	{	handle_timers();});
 
-	return EET_SUC;
+	return EEC_SUC;
 
 }
 
 int32_t CSmartTimers::stop()
 {
 
-	return EET_SUC;
+	return EEC_SUC;
 }
 
 int32_t CSmartTimers::remove_timer(TimerHandlerPtr_t &pTimerHandler)
 {
-	return EET_SUC;
+	return EEC_SUC;
 }
 
 void CSmartTimers::handle_timers()
@@ -132,3 +128,4 @@ int32_t CSmartTimers::add_timer(TimerHandlerPtr_t& pTimerHandler)
 }
 
 } /* namespace ns_utils */
+

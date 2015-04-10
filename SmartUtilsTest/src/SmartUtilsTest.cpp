@@ -11,7 +11,7 @@ using namespace std;
 
 #include <timers/SmartTimers.h>
 
-class CMyTimerHandler: public ns_utils::CTimerHandler
+class CMyTimerHandler: public ns_utils::CTimer
 {
 public:
 	void handle_timer_evt(uint64_t ui64Times)
@@ -23,11 +23,15 @@ public:
 
 int main()
 {
-	auto ptr = std::make_shared < CMyTimerHandler > ();
+	auto ptr = std::make_shared < CMyTimerHandler > (ns_utils::CSmartTimers::ECT_REALTIME, 10, 5);
 
 	ns_utils::CSmartTimers tms;
 	tms.start();
 	tms.add_timer(ptr);
+
+    std::this_thread::sleep_for(100s);
+
+    tms.stop();
 
 
 	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
