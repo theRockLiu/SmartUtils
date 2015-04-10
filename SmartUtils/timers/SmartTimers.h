@@ -13,13 +13,22 @@
 #include <thread>
 #include <set>
 
-namespace ns_utils {
+namespace ns_utils
+{
 
-class CTimerHandler {
+enum EErrCode
+{
+	EEC_SUC = 0
+};
+
+class CTimerHandler
+{
 protected:
-	CTimerHandler() {
+	CTimerHandler()
+	{
 	}
-	virtual ~CTimerHandler() {
+	virtual ~CTimerHandler()
+	{
 	}
 
 public:
@@ -28,14 +37,17 @@ public:
 };
 typedef std::shared_ptr<ns_utils::CTimerHandler> TimerHandlerPtr_t;
 
-class CSmartTimers {
+class CSmartTimers
+{
 
 public:
-	enum EClockType {
+	enum EClockType
+	{
 		ECT_BASE = 0, ECT_REALTIME = ECT_BASE + 1, ECT_MONOTONIC = ECT_BASE + 2
 	};
 
-	enum EErrorType {
+	enum EErrorType
+	{
 		EET_SUC = 0, EET_ERR = EET_SUC - 1
 	};
 

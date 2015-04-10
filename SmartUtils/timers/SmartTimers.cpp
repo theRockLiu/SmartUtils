@@ -8,7 +8,8 @@
 #include "SmartTimers.h"
 #include <utility>
 
-namespace ns_utils {
+namespace ns_utils
+{
 
 //void thr_fun(const CSmartTimers::CTimerMgr &tm) {
 //
@@ -22,37 +23,45 @@ namespace ns_utils {
 //
 //}
 
-CSmartTimers::CSmartTimers() {
+CSmartTimers::CSmartTimers()
+{
 	// TODO Auto-generated constructor stub
 
 }
 
-CSmartTimers::~CSmartTimers() {
+CSmartTimers::~CSmartTimers()
+{
 	// TODO Auto-generated destructor stub
 }
 
-int32_t CSmartTimers::start() {
+int32_t CSmartTimers::start()
+{
 
-	if (m_pThread != nullptr) {
+	if (m_pThread != nullptr)
+	{
 		return EET_ERR;
 	}
 
-	m_pThread = std::make_shared < std::thread > ([this] {handle_timers();});
+	m_pThread = std::make_shared < std::thread > ([this]
+	{	handle_timers();});
 
 	return EET_SUC;
 
 }
 
-int32_t CSmartTimers::stop() {
+int32_t CSmartTimers::stop()
+{
 
 	return EET_SUC;
 }
 
-int32_t CSmartTimers::remove_timer() {
+int32_t CSmartTimers::remove_timer(TimerHandlerPtr_t &pTimerHandler)
+{
 	return EET_SUC;
 }
 
-void CSmartTimers::handle_timers() {
+void CSmartTimers::handle_timers()
+{
 
 #if 0
 	struct itimerspec new_value;
@@ -61,7 +70,8 @@ void CSmartTimers::handle_timers() {
 	uint64_t exp, tot_exp;
 	ssize_t s;
 
-	if ((argc != 2) && (argc != 4)) {
+	if ((argc != 2) && (argc != 4))
+	{
 		fprintf(stderr, "%s init-secs [interval-secs max-exp]\n",
 				argv[0]);
 		exit(EXIT_FAILURE);
@@ -75,10 +85,13 @@ void CSmartTimers::handle_timers() {
 
 	new_value.it_value.tv_sec = now.tv_sec + atoi(argv[1]);
 	new_value.it_value.tv_nsec = now.tv_nsec;
-	if (argc == 2) {
+	if (argc == 2)
+	{
 		new_value.it_interval.tv_sec = 0;
 		max_exp = 1;
-	} else {
+	}
+	else
+	{
 		new_value.it_interval.tv_sec = atoi(argv[2]);
 		max_exp = atoi(argv[3]);
 	}
@@ -94,7 +107,8 @@ void CSmartTimers::handle_timers() {
 	print_elapsed_time();
 	printf("timer started\n");
 
-	for (tot_exp = 0; tot_exp < max_exp;) {
+	for (tot_exp = 0; tot_exp < max_exp;)
+	{
 		s = read(fd, &exp, sizeof(uint64_t));
 		if (s != sizeof(uint64_t))
 		handle_error("read");
@@ -112,8 +126,9 @@ void CSmartTimers::handle_timers() {
 
 }
 
-} /* namespace ns_utils */
-
-int32_t ns_utils::CSmartTimers::add_timer(TimerHandlerPtr_t& pTimerHandler)
+int32_t CSmartTimers::add_timer(TimerHandlerPtr_t& pTimerHandler)
 {
+	return EEC_SUC;
 }
+
+} /* namespace ns_utils */
