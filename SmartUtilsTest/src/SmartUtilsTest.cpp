@@ -11,7 +11,7 @@ using namespace std;
 
 #include <timers/SmartTimers.h>
 
-class CMyTimerHandler: public ns_utils::CTimer
+class CMyTimerHandler: public ns_utils::CBaseTimer
 {
 public:
 	void handle_timer_evt(uint64_t ui64Times)
@@ -23,7 +23,7 @@ public:
 
 int main()
 {
-	auto ptr = std::make_shared < CMyTimerHandler > (ns_utils::CSmartTimers::ECT_REALTIME, 10, 5);
+	ns_utils::timer_ptr_t ptr = std::make_shared < CMyTimerHandler > ();
 
 	ns_utils::CSmartTimers tms;
 	tms.start();
