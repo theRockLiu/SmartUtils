@@ -12,6 +12,8 @@
 namespace ns_utils
 {
 
+const int64_t NANOS_OF_ONE_SECONDS = (1000 * 1000 * 1000);
+
 int32_t CBaseTimer::create()
 {
 
@@ -20,10 +22,34 @@ int32_t CBaseTimer::create()
 		return EEC_ERR;
 	}
 
-	m_fd = timerfd_create(ECT_REALTIME == m_timer_type ? CLOCK_REALTIME : CLOCK_MONOTONIC, 0);
-	if (-1 == m_fd)
+	int32_t timer_type =
+			ECT_REALTIME == m_timer_type ? CLOCK_REALTIME : CLOCK_MONOTONIC;
+
+	struct timespec now =
+	{ 0 };
+	if (clock_gettime(timer_type, &now) == -1)
 	{
-		//print errno.
+		return EEC_ERR;
+	}
+
+	struct itimerspec new_value =
+	{ 0 };
+	new_value.it_value.tv_sec = now.tv_sec + m_init_expire_seconds
+			+ (now.tv_nsec + m_init_expire_nanos) / NANOS_OF_ONE_SECONDS;
+	new_value.it_value.tv_nsec = (now.tv_nsec + m_init_expire_nanos)
+			% NANOS_OF_ONE_SECONDS;
+	new_value.it_interval.tv_sec = m_interval_seconds
+			+ m_interval_nanos / NANOS_OF_ONE_SECONDS;
+	new_value.it_interval.tv_nsec = m_interval_nanos % NANOS_OF_ONE_SECONDS;
+
+	m_fd = timerfd_create(timer_type, 0);
+	if (m_fd == -1)
+	{
+		return EEC_ERR;
+	}
+
+	if (timerfd_settime(m_fd, TFD_TIMER_ABSTIME, &new_value, NULL) == -1)
+	{
 		return EEC_ERR;
 	}
 
@@ -67,8 +93,6 @@ int32_t CSmartTimers::remove_timer(timer_ptr_t &pTimerHandler)
 	return EEC_SUC;
 }
 
-
-
 void CSmartTimers::handle_timers()
 {
 
@@ -79,15 +103,8 @@ void CSmartTimers::handle_timers()
 	uint64_t exp, tot_exp;
 	ssize_t s;
 
-	if ((argc != 2) && (argc != 4))
-	{
-		fprintf(stderr, "%s init-secs [interval-secs max-exp]\n",
-				argv[0]);
-		exit(EXIT_FAILURE);
-	}
-
 	if (clock_gettime(CLOCK_REALTIME, &now) == -1)
-	handle_error("clock_gettime");
+		handle_error("clock_gettime");
 
 	/* Create a CLOCK_REALTIME absolute timer with initial
 	 expiration and interval as specified in command line */
@@ -108,10 +125,10 @@ void CSmartTimers::handle_timers()
 
 	fd = timerfd_create(CLOCK_REALTIME, 0);
 	if (fd == -1)
-	handle_error("timerfd_create");
+		handle_error("timerfd_create");
 
 	if (timerfd_settime(fd, TFD_TIMER_ABSTIME, &new_value, NULL) == -1)
-	handle_error("timerfd_settime");
+		handle_error("timerfd_settime");
 
 	print_elapsed_time();
 	printf("timer started\n");
@@ -120,16 +137,15 @@ void CSmartTimers::handle_timers()
 	{
 		s = read(fd, &exp, sizeof(uint64_t));
 		if (s != sizeof(uint64_t))
-		handle_error("read");
+			handle_error("read");
 
 		tot_exp += exp;
 		print_elapsed_time();
-		printf("read: %llu; total=%llu\n",
-				(unsigned long long) exp,
+		printf("read: %llu; total=%llu\n", (unsigned long long) exp,
 				(unsigned long long) tot_exp);
 	}
 
-	exit(EXIT_SUCCESS);
+	exit (EXIT_SUCCESS);
 }
 #endif
 
@@ -141,5 +157,4 @@ int32_t CSmartTimers::add_timer(timer_ptr_t& pTimerHandler)
 }
 
 } /* namespace ns_utils */
-
 

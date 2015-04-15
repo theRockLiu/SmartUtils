@@ -44,7 +44,7 @@ protected:
 
 	int32_t create();
 
-	virtual void handle_interval_evt(uint64_t ui64Times) = 0;
+	virtual void handle_timer_evt(uint64_t ui64Times) = 0;
 
 public:
 	void set_timer_type(int32_t timer_type)
