@@ -44,10 +44,13 @@ class CBaseTimer
 
 protected:
 	CBaseTimer() :
-			m_fd(-1), m_timer_type(ECT_NONE), m_init_expire_seconds(-1), m_init_expire_nanos(
-					-1), m_interval_seconds(-1), m_interval_nanos(-1)
+			m_registered(false), m_fd(-1), m_timer_type(ECT_NONE), m_init_expire_seconds(-1), m_init_expire_nanos(-1), m_interval_seconds(-1), m_interval_nanos(
+					-1)
 	{
+		//int32_t r = create();
+		//ST_ASSERT(EEC_SUC == r);
 	}
+
 	virtual ~CBaseTimer()
 	{
 	}
@@ -61,14 +64,12 @@ public:
 	{
 		m_timer_type = timer_type;
 	}
-	inline void set_init_expire_time(int64_t init_expire_seconds,
-			int64_t init_expire_nanos)
+	inline void set_init_expire_time(int64_t init_expire_seconds, int64_t init_expire_nanos)
 	{
 		m_init_expire_seconds = init_expire_seconds;
 		m_init_expire_nanos = init_expire_nanos;
 	}
-	inline void set_interval_time(int64_t interval_seconds,
-			int64_t interval_nanos)
+	inline void set_interval_time(int64_t interval_seconds, int64_t interval_nanos)
 	{
 		m_interval_seconds = interval_seconds;
 		m_interval_nanos = interval_nanos;
@@ -79,7 +80,22 @@ public:
 		return MAX_TIMERS;
 	}
 
+	bool is_registered()
+	{
+		return m_registered;
+	}
+	void registered()
+	{
+		m_registered = true;
+	}
+
+	int32_t get_fd()
+	{
+		return m_fd;
+	}
+
 private:
+	bool m_registered;
 	int32_t m_fd;
 	int32_t m_timer_type;
 	int64_t m_init_expire_seconds;
@@ -102,14 +118,12 @@ public:
 	int32_t start();
 	int32_t stop();
 
-	int32_t add_timer(timer_ptr_t &pTimerHandler);
-	int32_t remove_timer(timer_ptr_t &pTimerHandler);
+	int32_t add_timer(timer_ptr_t &ptimer);
 	uint32_t get_max_timers();
 
 	void handle_timers();
 
 private:
-
 	volatile bool m_stop_flag;
 	typedef std::set<timer_ptr_t> timers_set_t;
 	timers_set_t m_timers;

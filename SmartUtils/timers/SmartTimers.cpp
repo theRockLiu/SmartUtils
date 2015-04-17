@@ -10,6 +10,8 @@
 #include <sys/timerfd.h>
 #include <cassert>
 #include <sys/epoll.h>
+#include <unistd.h>
+#include <iostream>
 
 namespace ns_utils
 {
@@ -18,17 +20,14 @@ const int64_t NANOS_OF_ONE_SECONDS = (1000 * 1000 * 1000);
 
 int32_t CBaseTimer::create()
 {
-	ST_ASSERT(
-			m_init_expire_nanos < NANOS_OF_ONE_SECONDS
-					&& m_interval_nanos < NANOS_OF_ONE_SECONDS);
+	ST_ASSERT(m_init_expire_nanos < NANOS_OF_ONE_SECONDS && m_interval_nanos < NANOS_OF_ONE_SECONDS);
 
 	if (ECT_REALTIME != m_timer_type && ECT_MONOTONIC != m_timer_type)
 	{
 		return EEC_ERR;
 	}
 
-	int32_t timer_type =
-			ECT_REALTIME == m_timer_type ? CLOCK_REALTIME : CLOCK_MONOTONIC;
+	int32_t timer_type = ECT_REALTIME == m_timer_type ? CLOCK_REALTIME : CLOCK_MONOTONIC;
 
 	struct timespec now =
 	{ 0 };
@@ -39,12 +38,9 @@ int32_t CBaseTimer::create()
 
 	struct itimerspec new_value =
 	{ 0 };
-	new_value.it_value.tv_sec = now.tv_sec + m_init_expire_seconds
-			+ (now.tv_nsec + m_init_expire_nanos) / NANOS_OF_ONE_SECONDS;
-	new_value.it_value.tv_nsec = (now.tv_nsec + m_init_expire_nanos)
-			% NANOS_OF_ONE_SECONDS;
-	new_value.it_interval.tv_sec = m_interval_seconds
-			+ m_interval_nanos / NANOS_OF_ONE_SECONDS;
+	new_value.it_value.tv_sec = now.tv_sec + m_init_expire_seconds + (now.tv_nsec + m_init_expire_nanos) / NANOS_OF_ONE_SECONDS;
+	new_value.it_value.tv_nsec = (now.tv_nsec + m_init_expire_nanos) % NANOS_OF_ONE_SECONDS;
+	new_value.it_interval.tv_sec = m_interval_seconds + m_interval_nanos / NANOS_OF_ONE_SECONDS;
 	new_value.it_interval.tv_nsec = m_interval_nanos % NANOS_OF_ONE_SECONDS;
 
 	m_fd = timerfd_create(timer_type, 0);
@@ -62,7 +58,7 @@ int32_t CBaseTimer::create()
 }
 
 CSmartTimers::CSmartTimers() :
-		m_pthread(nullptr)
+		m_stop_flag(false), m_pthread(nullptr)
 {
 	// TODO Auto-generated constructor stub
 
@@ -112,94 +108,112 @@ int32_t CSmartTimers::stop()
 		ST_ASSERT(false);
 		return EEC_ERR;
 	}
+	m_stop_flag = true;
 	m_pthread->join();
 
 	return EEC_SUC;
 }
 
-int32_t CSmartTimers::remove_timer(timer_ptr_t &pTimerHandler)
+int32_t CSmartTimers::add_timer(timer_ptr_t &ptimer)
 {
+	std::lock_guard < std::mutex > lock(m_timers_lk);
+
+	std::pair<timers_set_t::iterator, bool> ret = m_timers.insert(ptimer);
+	if (!ret.second)
+	{
+		return EEC_ERR;
+	}
+
+	if (ptimer->create() == EEC_ERR)
+	{
+		m_timers.erase(ret.first);
+		return EEC_ERR;
+	}
+
 	return EEC_SUC;
 }
 
 void CSmartTimers::handle_timers()
 {
-	{
-		std::lock_guard < std::mutex > lock(m_timers_lk); ///TheRock_Lhy: not suggest to register timer at runtime..
-		///modify epoll set
-		for (timers_set_t::iterator itor = m_timers.begin();
-				itor != m_timers.end(); ++itor)
-		{
-			if ((*itor).unique())
-			{
-				//TheRock_Lhy: i confirm not to assign it to others:).
-				///unregister it now.
-				struct epoll_event ev = { 0 };
-				ev.events = EPOLLIN;
-				ev.data.fd = ;
-				if (epoll_ctl(m_epollfd, EPOLL_CTL_DEL, listen_sock, &ev) == -1)
-				{
-					perror("epoll_ctl: listen_sock");
-					exit (EXIT_FAILURE);
-				}
-			}
-			else if (!(*itor)->is_registered())
-			{
-				///register it
-
-			}
-		}
-	}
-
-	ev.events = EPOLLIN;
-	ev.data.fd = listen_sock;
-	if (epoll_ctl(epollfd, EPOLL_CTL_ADD, listen_sock, &ev) == -1)
-	{
-		perror("epoll_ctl: listen_sock");
-		exit (EXIT_FAILURE);
-	}
-
 	for (;;)
 	{
-		nfds = epoll_wait(epollfd, events, MAX_TIMERS, -1);
-		if (nfds == -1)
+		if (m_stop_flag)
 		{
-			perror("epoll_pwait");
-			exit (EXIT_FAILURE);
+			break;
 		}
 
-		for (n = 0; n < nfds; ++n)
 		{
-			if (events[n].data.fd == listen_sock)
+			std::lock_guard < std::mutex > lock(m_timers_lk); ///TheRock_Lhy: not suggest to register timer at runtime..
+			///modify epoll set
+			for (timers_set_t::iterator itor = m_timers.begin(); itor != m_timers.end();)
 			{
-				conn_sock = accept(listen_sock, (struct sockaddr *) &local,
-						&addrlen);
-				if (conn_sock == -1)
+				std::cout<<"count: "<<(*itor).use_count()<<std::endl;
+
+				if ((*itor).unique())
 				{
-					perror("accept");
-					exit (EXIT_FAILURE);
+					std::cout<<"count1: "<<(*itor).use_count()<<std::endl;
+					//TheRock_Lhy: i confirm not to assign it to others:).
+					///unregister it now.
+					if (epoll_ctl(m_epollfd, EPOLL_CTL_DEL, (*itor)->get_fd(), NULL) == -1)
+					{
+						ST_ASSERT(false);
+					}
+
+					m_timers.erase(++itor);
+
 				}
-				setnonblocking (conn_sock);
-				ev.events = EPOLLIN | EPOLLET;
-				ev.data.fd = conn_sock;
-				if (epoll_ctl(epollfd, EPOLL_CTL_ADD, conn_sock, &ev) == -1)
+				else if (!(*itor)->is_registered())
 				{
-					perror("epoll_ctl: conn_sock");
-					exit (EXIT_FAILURE);
+					std::cout<<"count1: "<<(*itor).use_count()<<std::endl;
+					///register it
+					struct epoll_event ev =
+					{ 0 };
+					ev.events = EPOLLIN;
+					ev.data.ptr = (*itor).get();
+					if (epoll_ctl(m_epollfd, EPOLL_CTL_ADD, (*itor)->get_fd(), &ev) == -1)
+					{
+						ST_ASSERT(false);
+					}
+
+					(*itor)->registered();
+					itor++;
+				}
+				else
+				{
+					itor++;
 				}
 			}
-			else
+		}
+
+		struct epoll_event events[MAX_TIMERS] =
+		{ 0 };
+		int32_t nfds = 0, n = 0;
+		const int32_t timeout = 1;
+		uint64_t times = 0;
+		ssize_t s = 0;
+		for (;;)
+		{
+			nfds = epoll_wait(m_epollfd, events, MAX_TIMERS, timeout);
+			if (nfds == -1)
 			{
-				do_use_fd(events[n].data.fd);
+				//ST_ASSERT(false);
+				break;
+			}
+
+			for (n = 0; n < nfds; ++n)
+			{
+				CBaseTimer *ptimer = static_cast<CBaseTimer*>(events[n].data.ptr);
+				s = read(ptimer->get_fd(), &times, sizeof(uint64_t));
+				if (s != sizeof(uint64_t))
+				{
+					ST_ASSERT(false);
+					return;
+				}
+				ptimer->handle_timer_evt(times);
 			}
 		}
 	}
 
-}
-
-int32_t CSmartTimers::add_timer(timer_ptr_t& pTimerHandler)
-{
-	return EEC_SUC;
 }
 
 } /* namespace ns_utils */
