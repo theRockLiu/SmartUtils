@@ -13,6 +13,7 @@
 #include <thread>
 #include <set>
 #include <atomic>
+#include <mutex>
 
 #ifdef NDEBUG
 #define ST_ASSERT(expr) assert(expr) ///to do ...
@@ -110,12 +111,12 @@ public:
 private:
 
 	volatile bool m_stop_flag;
-	typedef std::set<timer_ptr_t> TimerHanderSet_t;
-	TimerHanderSet_t m_setTimers;
+	typedef std::set<timer_ptr_t> timers_set_t;
+	timers_set_t m_timers;
 	typedef std::shared_ptr<std::thread> ThreadPtr_t;
-	ThreadPtr_t m_pThread;
-	std::atomic_bool m_flag;
-	std::mutex m_state_lk;
+	ThreadPtr_t m_pthread;
+	std::mutex m_state_lk, m_timers_lk;
+	int32_t m_epollfd;
 
 };
 

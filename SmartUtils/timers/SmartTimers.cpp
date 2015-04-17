@@ -62,7 +62,7 @@ int32_t CBaseTimer::create()
 }
 
 CSmartTimers::CSmartTimers() :
-		m_flag(false)
+		m_pthread(nullptr)
 {
 	// TODO Auto-generated constructor stub
 
@@ -77,14 +77,11 @@ int32_t CSmartTimers::start()
 {
 	std::lock_guard < std::mutex > lock(m_state_lk);
 
-	if (m_pThread != nullptr)
+	if (m_pthread != nullptr)
 	{
 		ST_ASSERT(false);
 		return EEC_ERR;
 	}
-
-	struct epoll_event ev, events[MAX_TIMERS];
-	int listen_sock, conn_sock, nfds, epollfd;
 
 	/*
 	 * In the initial epoll_create() implementation, the size argument informed the kernel of the number  of  file  descriptors  that  the  caller
@@ -93,31 +90,29 @@ int32_t CSmartTimers::start()
 	 in  size.)  Nowadays, this hint is no longer required (the kernel dynamically sizes the required data structures without needing the hint),
 	 but size must still be greater than zero, in order to ensure backward compatibility when new epoll applications are run on older kernels.
 	 * */
-	int32_t epollfd = epoll_create(MAX_TIMERS);
-	if (epollfd == -1)
+	m_epollfd = epoll_create(MAX_TIMERS);
+	if (m_epollfd == -1)
 	{
-		ST_ASSERT()
-
-		perror("epoll_create");
-		exit (EXIT_FAILURE);
+		ST_ASSERT(false);
+		return EEC_ERR;
 	}
 
-	m_pThread = std::make_shared < std::thread > ([this]
+	m_pthread = std::make_shared < std::thread > ([this]
 	{	handle_timers();});
 
 	return EEC_SUC;
-
 }
 
 int32_t CSmartTimers::stop()
 {
 	std::lock_guard < std::mutex > lock(m_state_lk);
 
-	if (m_pThread == nullptr)
+	if (m_pthread == nullptr)
 	{
 		ST_ASSERT(false);
 		return EEC_ERR;
 	}
+	m_pthread->join();
 
 	return EEC_SUC;
 }
@@ -129,6 +124,32 @@ int32_t CSmartTimers::remove_timer(timer_ptr_t &pTimerHandler)
 
 void CSmartTimers::handle_timers()
 {
+	{
+		std::lock_guard < std::mutex > lock(m_timers_lk); ///TheRock_Lhy: not suggest to register timer at runtime..
+		///modify epoll set
+		for (timers_set_t::iterator itor = m_timers.begin();
+				itor != m_timers.end(); ++itor)
+		{
+			if ((*itor).unique())
+			{
+				//TheRock_Lhy: i confirm not to assign it to others:).
+				///unregister it now.
+				struct epoll_event ev = { 0 };
+				ev.events = EPOLLIN;
+				ev.data.fd = ;
+				if (epoll_ctl(m_epollfd, EPOLL_CTL_DEL, listen_sock, &ev) == -1)
+				{
+					perror("epoll_ctl: listen_sock");
+					exit (EXIT_FAILURE);
+				}
+			}
+			else if (!(*itor)->is_registered())
+			{
+				///register it
+
+			}
+		}
+	}
 
 	ev.events = EPOLLIN;
 	ev.data.fd = listen_sock;
