@@ -24,23 +24,30 @@ public:
 int main()
 {
 	ns_utils::timer_ptr_t ptr = std::make_shared<CMyTimerHandler>();
-
-	ns_utils::CSmartTimers tms;
-	tms.start();
 	ptr->set_timer_type(ns_utils::EClockType::ECT_REALTIME);
 	ptr->set_init_expire_time(1, 1);
 	ptr->set_interval_time(1, 1);
 
-	cout <<"sss: " <<ptr.use_count() << endl; // prints !!!Hello World!!!
-	tms.add_timer(ptr);
+	ns_utils::CSmartTimers tms;
+	tms.start();
 
-	cout <<"sss: " <<ptr.use_count() << endl; // prints !!!Hello World!!!
+	cout << "sss: " << ptr.use_count() << endl; // prints !!!Hello World!!!
+	tms.add_timer(ptr);
+	cout << "sss: " << ptr.use_count() << endl; // prints !!!Hello World!!!
 
 	std::this_thread::sleep_for(10s);
 
-	// ptr;
+	ptr = nullptr;
 
 	cout << "!!!stop!!!" << endl; // prints !!!Hello World!!!
+
+	std::this_thread::sleep_for(10s);
+
+	ptr = std::make_shared<CMyTimerHandler>();
+	ptr->set_timer_type(ns_utils::EClockType::ECT_REALTIME);
+	ptr->set_init_expire_time(1, 1);
+	ptr->set_interval_time(1, 1);
+	tms.add_timer(ptr);
 
 	std::this_thread::sleep_for(10s);
 

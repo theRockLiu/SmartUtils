@@ -142,16 +142,18 @@ void CSmartTimers::handle_timers()
 			break;
 		}
 
+		//std::cout<<"run: "<<std::endl;
+
 		{
 			std::lock_guard < std::mutex > lock(m_timers_lk); ///TheRock_Lhy: not suggest to register timer at runtime..
 			///modify epoll set
 			for (timers_set_t::iterator itor = m_timers.begin(); itor != m_timers.end();)
 			{
-				std::cout<<"count: "<<(*itor).use_count()<<std::endl;
+				//std::cout << "count: " << (*itor).use_count() << std::endl;
 
 				if ((*itor).unique())
 				{
-					std::cout<<"count1: "<<(*itor).use_count()<<std::endl;
+					std::cout << "count1: " << (*itor).use_count() << std::endl;
 					//TheRock_Lhy: i confirm not to assign it to others:).
 					///unregister it now.
 					if (epoll_ctl(m_epollfd, EPOLL_CTL_DEL, (*itor)->get_fd(), NULL) == -1)
@@ -159,12 +161,12 @@ void CSmartTimers::handle_timers()
 						ST_ASSERT(false);
 					}
 
-					m_timers.erase(++itor);
+					m_timers.erase(itor++);
 
 				}
 				else if (!(*itor)->is_registered())
 				{
-					std::cout<<"count1: "<<(*itor).use_count()<<std::endl;
+					std::cout << "count2: " << (*itor).use_count() << std::endl;
 					///register it
 					struct epoll_event ev =
 					{ 0 };
@@ -196,7 +198,7 @@ void CSmartTimers::handle_timers()
 			nfds = epoll_wait(m_epollfd, events, MAX_TIMERS, timeout);
 			if (nfds == -1)
 			{
-				//ST_ASSERT(false);
+				ST_ASSERT(false);
 				break;
 			}
 
@@ -211,6 +213,8 @@ void CSmartTimers::handle_timers()
 				}
 				ptimer->handle_timer_evt(times);
 			}
+
+			break;
 		}
 	}
 
