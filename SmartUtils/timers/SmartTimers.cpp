@@ -37,12 +37,15 @@ int32_t CBaseTimer::create()
 
 	int32_t timer_type = ETT_REALTIME == m_timer_type ? CLOCK_REALTIME : CLOCK_MONOTONIC;
 
-	struct timespec now =
-	{ 0 };
+	struct timespec now = { 0 };
+	int32_t flags = 0;
+#if (__ABS_TIME__)
 	if (clock_gettime(timer_type, &now) == -1)
 	{
 		return EEC_ERR;
 	}
+	flags = TFD_TIMER_ABSTIME;
+#endif
 
 	struct itimerspec new_value =
 	{ 0 };
@@ -57,7 +60,7 @@ int32_t CBaseTimer::create()
 		return EEC_ERR;
 	}
 
-	if (timerfd_settime(m_fd, TFD_TIMER_ABSTIME, &new_value, NULL) == -1)
+	if (timerfd_settime(m_fd, flags, &new_value, NULL) == -1)
 	{
 		return EEC_ERR;
 	}
@@ -66,10 +69,9 @@ int32_t CBaseTimer::create()
 }
 
 CSmartTimers::CSmartTimers() :
-		m_stop_flag(false), m_pthread(nullptr)
+		m_stop_flag(false), m_pthread(nullptr), m_epollfd(-1)
 {
 	// TODO Auto-generated constructor stub
-
 }
 
 CSmartTimers::~CSmartTimers()
@@ -118,11 +120,17 @@ int32_t CSmartTimers::stop()
 	}
 	m_stop_flag = true;
 	m_pthread->join();
+	m_pthread = nullptr;
+
+	m_timers.clear();
+
+	close(m_epollfd);
+	m_epollfd = -1;
 
 	return EEC_SUC;
 }
 
-int32_t CSmartTimers::add_timer(timer_ptr_t &ptimer)
+int32_t CSmartTimers::register_timer(timer_ptr_t &ptimer)
 {
 	std::lock_guard < std::mutex > lock(m_timers_lk);
 
@@ -161,7 +169,6 @@ void CSmartTimers::handle_timers()
 
 				if ((*itor).unique())
 				{
-					std::cout << "count1: " << (*itor).use_count() << std::endl;
 					//TheRock_Lhy: i confirm not to assign it to others:).
 					///unregister it now.
 					if (epoll_ctl(m_epollfd, EPOLL_CTL_DEL, (*itor)->get_fd(), NULL) == -1)
@@ -174,7 +181,6 @@ void CSmartTimers::handle_timers()
 				}
 				else if (!(*itor)->is_registered())
 				{
-					std::cout << "count2: " << (*itor).use_count() << std::endl;
 					///register it
 					struct epoll_event ev =
 					{ 0 };

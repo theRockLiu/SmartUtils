@@ -54,9 +54,9 @@ class CBaseTimer
 	DISABLE_MOVE(CBaseTimer)
 
 protected:
-	CBaseTimer(const ETimerType timer_type, int64_t init_expire_seconds, int64_t init_expire_nanos, int64_t interval_seconds, int64_t interval_nanos) :
-			m_registered(false), m_fd(-1), m_timer_type(timer_type), m_init_expire_seconds(init_expire_seconds), m_init_expire_nanos(
-					init_expire_nanos), m_interval_seconds(interval_seconds), m_interval_nanos(interval_nanos)
+	CBaseTimer(const ETimerType timer_type, int64_t interval_seconds, int64_t interval_nanos) :
+			m_registered(false), m_fd(-1), m_timer_type(timer_type), m_init_expire_seconds(interval_seconds), m_init_expire_nanos(interval_nanos), m_interval_seconds(
+					interval_seconds), m_interval_nanos(interval_nanos)
 	{
 	}
 
@@ -87,6 +87,16 @@ public:
 		return MAX_TIMERS;
 	}
 
+	int64_t get_interval_seconds()
+	{
+		return m_interval_seconds;
+	}
+
+	int64_t get_interval_nanos()
+	{
+		return m_interval_nanos;
+	}
+
 private:
 	bool m_registered;
 	int32_t m_fd;
@@ -112,7 +122,7 @@ public:
 	int32_t start();
 	int32_t stop();
 
-	int32_t add_timer(timer_ptr_t &ptimer);
+	int32_t register_timer(timer_ptr_t &ptimer);
 	uint32_t get_max_timers();
 
 	void handle_timers();
