@@ -100,6 +100,8 @@ typedef std::shared_ptr<ns_utils::CBaseTimer> timer_ptr_t;
 
 class CSmartTimers
 {
+	DISABLE_COPY(CSmartTimers)
+	DISABLE_MOVE(CSmartTimers)
 
 public:
 	explicit CSmartTimers();
