@@ -18,16 +18,24 @@ namespace ns_utils
 
 const int64_t NANOS_OF_ONE_SECONDS = (1000 * 1000 * 1000);
 
+CBaseTimer::~CBaseTimer()
+{
+	if (-1 == m_fd)
+	{
+		close(m_fd);
+	}
+}
+
 int32_t CBaseTimer::create()
 {
 	ST_ASSERT(m_init_expire_nanos < NANOS_OF_ONE_SECONDS && m_interval_nanos < NANOS_OF_ONE_SECONDS);
 
-	if (ECT_REALTIME != m_timer_type && ECT_MONOTONIC != m_timer_type)
+	if (ETT_REALTIME != m_timer_type && ETT_MONOTONIC != m_timer_type)
 	{
 		return EEC_ERR;
 	}
 
-	int32_t timer_type = ECT_REALTIME == m_timer_type ? CLOCK_REALTIME : CLOCK_MONOTONIC;
+	int32_t timer_type = ETT_REALTIME == m_timer_type ? CLOCK_REALTIME : CLOCK_MONOTONIC;
 
 	struct timespec now =
 	{ 0 };
