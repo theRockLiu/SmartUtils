@@ -35,9 +35,9 @@ int main()
 	ns_utils::CSmartTimers tms;
 	tms.start();
 
-	cout << "sss: " << ptr.use_count() << endl; // prints !!!Hello World!!!
+	//cout << "sss: " << ptr.use_count() << endl; // prints !!!Hello World!!!
 	tms.add_timer(ptr);
-	cout << "sss: " << ptr.use_count() << endl; // prints !!!Hello World!!!
+	//cout << "sss: " << ptr.use_count() << endl; // prints !!!Hello World!!!
 
 	std::this_thread::sleep_for(10s);
 
@@ -49,6 +49,12 @@ int main()
 
 	ptr = std::make_shared < CMyTimerHandler > (ns_utils::ETimerType::ETT_MONOTONIC, 1, 1, 1, 1);
 	tms.add_timer(ptr);
+
+	ns_utils::timer_ptr_t ptr1 = std::make_shared < CMyTimerHandler > (ns_utils::ETimerType::ETT_MONOTONIC, 1, 1, 1, 1);
+	tms.add_timer(ptr1);
+
+	ns_utils::timer_ptr_t ptr2 = std::make_shared < CMyTimerHandler > (ns_utils::ETimerType::ETT_MONOTONIC, 1, 1, 1, 1);
+	tms.add_timer(ptr2);
 
 	std::this_thread::sleep_for(10s);
 
