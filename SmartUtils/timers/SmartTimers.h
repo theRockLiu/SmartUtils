@@ -54,7 +54,7 @@ class CBaseTimer
 	DISABLE_MOVE(CBaseTimer)
 
 protected:
-	CBaseTimer(const ETimerType timer_type, int64_t interval_seconds, int64_t interval_nanos) :
+	explicit CBaseTimer(const ETimerType timer_type, int64_t interval_seconds, int64_t interval_nanos) :
 			m_registered(false), m_fd(-1), m_timer_type(timer_type), m_init_expire_seconds(interval_seconds), m_init_expire_nanos(interval_nanos), m_interval_seconds(
 					interval_seconds), m_interval_nanos(interval_nanos)
 	{
@@ -135,7 +135,6 @@ private:
 	thread_ptr_t m_pthread;
 	std::mutex m_state_lk, m_timers_lk;
 	int32_t m_epollfd;
-
 };
 
 } /* namespace ns_utils */
